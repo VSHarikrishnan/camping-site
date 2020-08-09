@@ -1,0 +1,18 @@
+#thumbimg {
+    display: block;
+    width: 250px;
+    height: 250px;
+}
+
+.img-thumbnail img {
+    padding: 0%;
+    margin: 3px 3px;
+}
+
+.img-responsive img {
+    object-fit: contain;
+}
+
+.delete {
+    display: inline;
+}
