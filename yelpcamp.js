@@ -10,7 +10,9 @@ var campground = require("./models/campground");
 var user = require("./models/user");
 var seeddb = require("./seeds");
 var comment = require("./models/comment");
-var middleware = require("../yelpcamp/middleware/index.js")
+var campgroundroutes = require("./routes/campground.js");
+var commentroutes = require("./routes/comment.js");
+var middleware = require("./middleware/index.js");
 
 
 
@@ -22,8 +24,6 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 app.use(methodoverride("_method"));
 app.use(flash());
-
-
 
 app.use(require("express-session")({
     secret: "this is my camping site",
@@ -47,177 +47,43 @@ app.use(function(req, res, next) {
 app.get("/", function(req, res) {
     res.render("landing");
 });
+app.use("/campgrounds", campgroundroutes);
+app.use("/campgrounds/:id/comments", commentroutes);
 
-//index
-app.get("/campgrounds", function(req, res) {
-    campground.find({}, function(err, allcampgrounds) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.render("./campgrounds/index", { campgrounds: allcampgrounds });
-
-        }
-    });
-
-});
-
-
-//create
-app.post('/campgrounds', middleware.isloggedin, function(req, res) {
-    var name = req.body.name;
-    var image = req.body.image;
-    var price = req.body.price;
-    var description = req.body.description;
-    var author = {
-        id: req.user._id,
-        username: req.user.username
-    }
-    var newcampground = { name: name, image: image, price: price, description: description, author: author }
-    campground.create(newcampground, function(err, newcampground) {
-        if (err) {
-            console.log(err);
-        } else {
-            req.flash("success", "New campground created successfully ");
-            res.redirect("/campgrounds");
-        }
-    })
-
-
-});
-
-//new
-app.get("/campgrounds/new", middleware.isloggedin, function(req, res) {
-    res.render("./campgrounds/new");
-});
-
-//show 
-app.get("/campgrounds/:id", function(req, res) {
-    campground.findById(req.params.id).populate("comments").exec(function(err, foundcampground) {
-        if (err || !foundcampground) {
-            console.log(err);
-        } else {
-            res.render("./campgrounds/show", { campground: foundcampground });
-        }
-    })
-
-});
-
-//edit
-app.get("/campgrounds/:id/edit", middleware.checkcampgroundownership, function(req, res) {
+//========================================
+// campground Like Route
+//========================================
+app.post("/campgrounds/:id/like", middleware.isloggedin, function(req, res) {
     campground.findById(req.params.id, function(err, foundcampground) {
-
-        req.flash("success", "Updated successfully");
-        res.render("./campgrounds/edit", { campground: foundcampground });
-
-    });
-});
-
-//update
-app.put("/campgrounds/:id", middleware.checkcampgroundownership, function(req, res) {
-    campground.findByIdAndUpdate(req.params.id, req.body.campground, function(err, updatedcampground) {
         if (err) {
             console.log(err);
-            req.flash("error", "Update process unsuccessful");
-            res.redirect("/campgrounds");
-        } else {
-            req.flash("success", "Update successful");
-            res.redirect("/campgrounds/" + req.params.id);
+            return res.redirect("/campgrounds");
         }
-    });
-});
-//delete
-app.delete("/campgrounds/:id", middleware.checkcampgroundownership, function(req, res) {
-    campground.findByIdAndDelete(req.params.id, function(err, campground) {
-        if (err) {
-            req.flash("error", "Delete process unsuccessful");
-            res.redirect("/campgrounds");
+
+        // check if req.user._id exists in foundCampground.likes
+        var founduserlike = foundcampground.likes.some(function(like) {
+            return like.equals(req.user._id);
+        });
+
+        if (founduserlike) {
+            // user already liked, removing like
+            foundcampground.likes.pull(req.user._id);
         } else {
-            req.flash("success", "Succesfully deleted");
-            res.redirect("/campgrounds/");
+            // adding the new user like
+            foundcampground.likes.push(req.user);
         }
-    });
-});
 
-
-//=======================================
-//COMMENTS
-//=======================================
-app.get("/campgrounds/:id/comments/new", middleware.isloggedin, function(req, res) {
-    campground.find({}, function(err, allcampgrounds) {
-        campground.findById(req.params.id, function(err, campground) {
-
+        foundcampground.save(function(err) {
             if (err) {
                 console.log(err);
-            } else {
-                res.render("./comments/new", { campground: campground });
-
+                return res.redirect("/campgrounds");
             }
+            return res.redirect("/campgrounds/" + foundcampground._id);
         });
     });
-
-});
-
-app.post('/campgrounds/:id/comments', middleware.isloggedin, function(req, res) {
-
-
-    campground.findById(req.params.id, function(err, campground) {
-        if (err) {
-            console.log(err);
-            res.redirect("/campgrounds");
-        } else {
-            comment.create(req.body.comment, function(err, comment) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    comment.author.id = req.user._id;
-                    comment.author.username = req.user.username;
-                    comment.save();
-                    campground.comments.push(comment);
-                    campground.save();
-                    res.redirect('/campgrounds/' + campground._id);
-                }
-            });
-        }
-
-    });
-
-});
-//edit
-app.get("/campgrounds/:id/comments/:comment_id/edit", middleware.checkcommentownership, function(req, res) {
-    comment.findById(req.params.comment_id, function(err, foundcomment) {
-        if (err) {
-            console.log(err);
-            res.redirect("back");
-        } else {
-
-            res.render("./comments/edit", { campground_id: req.params.id, comment: foundcomment });
-        }
-
-    });
-});
-
-//update
-app.put("/campgrounds/:id/comments/:comment_id", middleware.checkcommentownership, function(req, res) {
-    comment.findByIdAndUpdate(req.params.comment_id, req.body.comment, function(err, updatecomment) {
-        if (err) {
-            console.log(err);
-            res.redirect("back");
-        } else {
-            res.redirect("/campgrounds/" + req.params.id);
-        }
-    });
 });
 
 
-app.delete("/campgrounds/:id/comments/:comment_id", middleware.checkcommentownership, function(req, res) {
-    comment.findByIdAndDelete(req.params.comment_id, function(err, comment) {
-        if (err) {
-            res.redirect("/campgrounds");
-        } else {
-            res.redirect("/campgrounds/");
-        }
-    });
-});
 
 //=====================================
 //auth routes
@@ -232,6 +98,9 @@ app.get("/register", function(req, res) {
 app.post('/register', function(req, res) {
 
     var newuser = new user({ username: req.body.username });
+    if (req.body.admincode === "admin123") {
+        newuser.isadmin = true;
+    }
     user.register(newuser, req.body.password, function(err, user) {
         if (err) {
             req.flash("error", err.message);
@@ -251,10 +120,11 @@ app.get("/login", function(req, res) {
 });
 
 app.post("/login", passport.authenticate("local", {
-    successRedirect: "/campgrounds",
-    successFlash: "welcome to yelpcamp",
-    failureRedirect: "/login"
+    failureRedirect: "/login",
+    failureFlash: "please login to continue"
 }), function(req, res) {
+    req.flash("success", "successfully logged in");
+    res.redirect("/campgrounds");
 
 });
 
