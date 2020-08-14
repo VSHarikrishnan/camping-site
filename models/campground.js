@@ -1,4 +1,7 @@
 var mongoose = require("mongoose");
+var comment = require("./comment");
+var review = require("./review");
+
 var campgroundschema = new mongoose.Schema({
     name: String,
     price: String,
@@ -19,6 +22,14 @@ var campgroundschema = new mongoose.Schema({
     likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
-    }]
+    }],
+    reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "review"
+    }],
+    rating: {
+        type: Number,
+        default: 0
+    }
 });
 module.exports = mongoose.model("campground", campgroundschema);

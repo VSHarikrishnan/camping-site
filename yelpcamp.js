@@ -10,8 +10,11 @@ var campground = require("./models/campground");
 var user = require("./models/user");
 var seeddb = require("./seeds");
 var comment = require("./models/comment");
+
 var campgroundroutes = require("./routes/campground.js");
 var commentroutes = require("./routes/comment.js");
+var authroutes = require("./routes/index.js");
+var reviewroutes = require("./routes/review.js");
 var middleware = require("./middleware/index.js");
 
 
@@ -49,7 +52,8 @@ app.get("/", function(req, res) {
 });
 app.use("/campgrounds", campgroundroutes);
 app.use("/campgrounds/:id/comments", commentroutes);
-
+app.use(authroutes);
+app.use("/campgrounds/:id/reviews", reviewroutes);
 //========================================
 // campground Like Route
 //========================================
@@ -82,58 +86,6 @@ app.post("/campgrounds/:id/like", middleware.isloggedin, function(req, res) {
         });
     });
 });
-
-
-
-//=====================================
-//auth routes
-//==============================
-
-app.get("/register", function(req, res) {
-    res.render("register");
-
-});
-
-
-app.post('/register', function(req, res) {
-
-    var newuser = new user({ username: req.body.username });
-    if (req.body.admincode === "admin123") {
-        newuser.isadmin = true;
-    }
-    user.register(newuser, req.body.password, function(err, user) {
-        if (err) {
-            req.flash("error", err.message);
-            return res.redirect("register");
-            //return res.render("register", { "error": err.message });
-        }
-        passport.authenticate("local")(req, res, function() {
-            req.flash("success", "Successfully registered");
-            res.redirect("/campgrounds");
-        });
-
-    });
-});
-
-app.get("/login", function(req, res) {
-    res.render("login");
-});
-
-app.post("/login", passport.authenticate("local", {
-    failureRedirect: "/login",
-    failureFlash: "please login to continue"
-}), function(req, res) {
-    req.flash("success", "successfully logged in");
-    res.redirect("/campgrounds");
-
-});
-
-app.get("/logout", function(req, res) {
-    req.logout();
-    req.flash("success", "you have been logged out");
-    res.redirect("/campgrounds");
-});
-
 
 
 

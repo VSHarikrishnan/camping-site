@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 var campground = require("../models/campground");
 var comment = require("../models/comment");
+var review = require("../models/review");
 var middleware = require("../middleware");
 
 
@@ -47,7 +48,10 @@ router.get("/new", middleware.isloggedin, function(req, res) {
 
 //show 
 router.get("/:id", function(req, res) {
-    campground.findById(req.params.id).populate("comments likes").exec(function(err, foundcampground) {
+    campground.findById(req.params.id).populate("comments likes").populate({
+        path: "reviews",
+        options: { sort: { createdAt: -1 } }
+    }).exec(function(err, foundcampground) {
         if (err || !foundcampground) {
             console.log(err);
         } else {
@@ -69,6 +73,7 @@ router.get("/:id/edit", middleware.checkcampgroundownership, function(req, res) 
 
 //update
 router.put("/:id", middleware.checkcampgroundownership, function(req, res) {
+    delete req.body.campground.rating;
     campground.findByIdAndUpdate(req.params.id, req.body.campground, function(err, updatedcampground) {
         if (err) {
             console.log(err);
@@ -83,7 +88,7 @@ router.put("/:id", middleware.checkcampgroundownership, function(req, res) {
 
 //delete
 router.delete("/:id", middleware.checkcampgroundownership, function(req, res) {
-    campground.findByIdAndDelete(req.params.id, function(err, campground) {
+    campground.findById(req.params.id, function(err, campground) {
         if (err) {
             req.flash("error", "Delete process unsuccessful");
             res.redirect("/campgrounds");
@@ -94,9 +99,17 @@ router.delete("/:id", middleware.checkcampgroundownership, function(req, res) {
                     console.log(err);
                     return res.redirect("/campgrounds");
                 }
+                review.remove({ "_id": { $in: campground.reviews } }, function(err) {
+                    if (err) {
+                        console.log(err);
+                        return res.redirect("/campgrounds");
+                    }
+                    //  delete the campground
+                    campground.remove();
+                    req.flash("success", "Succesfully deleted");
+                    res.redirect("/campgrounds/");
+                });
             });
-            req.flash("success", "Succesfully deleted");
-            res.redirect("/campgrounds/");
         }
     });
 });
