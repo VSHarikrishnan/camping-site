@@ -8,7 +8,13 @@ var commentschema = mongoose.Schema({
             ref: "user"
         },
         username: String
-    }
+    },
+    reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "review"
+    }]
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model("comment", commentschema);

@@ -78,7 +78,7 @@ router.put("/:id", middleware.checkcampgroundownership, function(req, res) {
         if (err) {
             console.log(err);
             req.flash("error", "Update process unsuccessful");
-            res.redirect("/campgrounds");
+            res.redirect("back");
         } else {
             req.flash("success", "Update successful");
             res.redirect("/campgrounds/" + req.params.id);
@@ -91,23 +91,23 @@ router.delete("/:id", middleware.checkcampgroundownership, function(req, res) {
     campground.findById(req.params.id, function(err, campground) {
         if (err) {
             req.flash("error", "Delete process unsuccessful");
-            res.redirect("/campgrounds");
+            res.redirect("back");
         } else {
             // deletes all comments associated with the campground
             comment.remove({ "_id": { $in: campground.comments } }, function(err) {
                 if (err) {
                     console.log(err);
-                    return res.redirect("/campgrounds");
+                    return res.redirect("back");
                 }
                 review.remove({ "_id": { $in: campground.reviews } }, function(err) {
                     if (err) {
                         console.log(err);
-                        return res.redirect("/campgrounds");
+                        return res.redirect("back");
                     }
                     //  delete the campground
                     campground.remove();
                     req.flash("success", "Succesfully deleted");
-                    res.redirect("/campgrounds/");
+                    res.redirect("back");
                 });
             });
         }
