@@ -1,0 +1,181 @@
+<%- include("../partials/header.ejs") %>
+    <div class="container">
+        <header class="jumbotron">
+            <div class="container">
+                <h1><i class="fas fa-shopping-cart"></i> Your Shopping cart</h1>
+                <p>Here is all that you wished to buy</p>
+            </div>
+        </header>
+        <!--Section: Block Content-->
+        <section>
+            <!--Grid row-->
+            <div class="row">
+                <!--Grid column-->
+                <div class="col-lg-8">
+                    <!-- Card -->
+                    <div class="card wish-list mb-3">
+                        <div class="card-body">
+                            <h5 class="mb-4">Cart (<span> <%if(session.cart){%><%=session.cart.totalQty%>  <%}else {%>0 <%}%></span> items)</h5>
+                            <% if(products!== null) { products.forEach(function(product){%>
+                                <%if(product.qty!==0){%>
+                                    <div class="row mb-4">
+                                        <div class="col-md-5 col-lg-3 col-xl-3">
+                                            <div class="view zoom overlay z-depth-1 rounded mb-3 mb-md-0">
+                                                <img class="img-fluid w-100 imgthumb" src="<%=product.item.image%>" alt="Sample">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7 col-lg-9 col-xl-9">
+                                            <div>
+                                                <div class="d-flex justify-content-between">
+                                                    <div>
+                                                        <h5>
+                                                            <%=product.item.name%>
+                                                        </h5>
+                                                        <!-- <p class="mb-3 text-muted text-uppercase small">Shirt - blue</p>
+                                                    <p class="mb-2 text-muted text-uppercase small">Color: blue</p>
+                                                    <p class="mb-3 text-muted text-uppercase small">Size: M</p> -->
+                                                    </div>
+                                                    <div>
+                                                        <div>
+                                                            <!-- <button href onclick="this.parentNode.querySelector('input[type=number]').stepDown()" class="fas fa-minus "></button> -->
+                                                            <a href="/remfromcart/<%=product.item._id %>/m"><i class="fas fa-minus"></i></a>
+                                                            <input class=" text-center" min="0" name="quantity" value="<%=product.qty%>" type="number">
+                                                            <a href="/addtocart/<%=product.item._id %>"><i class="fas fa-plus"></i></a>
+                                                            <!-- <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" class="fas fa-plus "></button> -->
+                                                        </div>
+                                                        <small id="passwordHelpBlock" class="form-text text-muted text-center">(Note, <%=product.qty%> piece)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <a href="/remfromcart/<%=product.item._id %>/c" type="button" class="card-link-secondary small text-uppercase mr-3 " id="remove"><i class="fas fa-trash-alt mr-1"></i> Remove item </a>
+                                                        <a href="#!" type="button" class="card-link-secondary small text-uppercase"><i class="fas fa-heart mr-1"></i> Move to wish list </a>
+                                                    </div>
+                                                    <p class="mb-0"><span><strong>$<%=product.price%></strong></span></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr class="mb-4">
+                                    <%}})}%>
+                                        <p class="text-primary mb-0"><i class="fas fa-info-circle mr-1"></i> Do not delay the purchase, adding items to your cart does not mean booking them.</p>
+                        </div>
+                    </div>
+                    <!-- Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="mb-4">Expected shipping delivery</h5>
+                            <p class="mb-0"> Thu., 12.03. - Mon., 16.03.</p>
+                        </div>
+                    </div>
+                    <!-- Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="mb-4">We accept</h5>
+                            <img class="mr-2" width="45px" src="https://mdbootstrap.com/wp-content/plugins/woocommerce-gateway-stripe/assets/images/visa.svg" alt="Visa">
+                            <img class="mr-2" width="45px" src="https://mdbootstrap.com/wp-content/plugins/woocommerce-gateway-stripe/assets/images/amex.svg" alt="American Express">
+                            <img class="mr-2" width="45px" src="https://mdbootstrap.com/wp-content/plugins/woocommerce-gateway-stripe/assets/images/mastercard.svg" alt="Mastercard">
+                            <img class="mr-2" width="45px" src="https://z9t4u9f6.stackpathcdn.com/wp-content/plugins/woocommerce/includes/gateways/paypal/assets/images/paypal.png" alt="PayPal acceptance mark">
+                        </div>
+                    </div>
+                    <!-- Card -->
+                </div>
+                <!--Grid column-->
+                <div class="col-lg-4">
+                    <!-- Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="mb-3">The total amount of</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
+                                    Temporary amount
+                                    <span><%=totalprice%></span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    Shipping
+                                    <span>0.00</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-3 px-0 mb-3">
+                                    <div>
+                                        <strong>The total amount of</strong>
+                                        <strong> <p class="mb-0">(including VAT)</p> </strong>
+                                    </div>
+                                    <span><strong>$<%=totalprice%> </strong></span>
+                                </li>
+                            </ul>
+                            <%if(!currentuser){%>
+                                <%var target = " ";%>
+
+                                    <div class="captionblk alert alert-danger" role="alert">Please Login for payment </div>
+                                    <button type="button" class="btn btn-primary btn-block waves-effect waves-light" data-toggle="modal" data-target="<%=target%>" disabled><i class="fas fa-credit-card"></i>  go to checkout</button>
+
+                                    <%}else{ var target = "#campgroundlikes"  %>
+                                        <%if( currentuser && !session.cart){%>
+                                            <div class="captionblk alert alert-danger" role="alert">The cart is empty</div>
+                                            <button type="button" class="btn btn-primary btn-block waves-effect waves-light" data-toggle="modal" data-target="<%=target%>" disabled><i class="fas fa-credit-card"></i>  go to checkout</button>
+
+                                            <%}else{%>
+                                                <button type="button" class="btn btn-primary btn-block waves-effect waves-light" data-toggle="modal" data-target="<%=target%>"><i class="fas fa-credit-card"></i>  go to checkout</button>
+
+                                                <%}%>
+                                                    <%}%>
+
+
+                        </div>
+                    </div>
+                    <!-- Card -->
+                    <!-- Card -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <a class="dark-grey-text d-flex justify-content-between" data-toggle="collapse" href="#collapseExample1" aria-expanded="false" aria-controls="collapseExample1">
+              Add a discount code (optional)<span><i class="fas fa-chevron-down pt-1"></i></span> </a>
+                            <div class="collapse" id="collapseExample1">
+                                <div class="mt-3">
+                                    <div class="md-form md-outline mb-0">
+                                        <input type="text" id="discount-code1" class="form-control font-weight-light" placeholder="Enter discount code">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card -->
+                </div>
+                <!--Grid column-->
+            </div>
+            <!--Grid row-->
+        </section>
+        <!--Section: Block Content-->
+    </div>
+    <!-- Campground Likes Modal -->
+    <div id="campgroundlikes" class="modal fade">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="">
+                    <button type="button" class="close " data-dismiss="modal">&times;</button>
+                    <!-- &times; inerting cross hex code -->
+                    <h4 class="modal-title text-center"><strong><i class="fas fa-user"></i>Billing details:</strong>
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form action="/checkout" method="POST">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" name="name">
+                            <label for="phonenumber">Phone Number</label>
+                            <input type="number" class="form-control" name="phonenumber">
+                            <label for="Email1">Email</label>
+                            <input type="email" class="form-control" name="email">
+                            <label for="address">House name/number </label>
+                            <input type="text" class="form-control" name="address">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include("../partials/footer.ejs") %>

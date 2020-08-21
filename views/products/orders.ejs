@@ -1,0 +1,58 @@
+<%- include("../partials/header.ejs") %>
+    <div class="container">
+        <header class="jumbotron">
+            <div class="container">
+                <h1><i class="fas fa-shopping-cart"></i> Your Orders </h1>
+                <p>Here is all that you brought</p>
+            </div>
+        </header>
+
+        <% if(orders){ %>
+            <!-- Card -->
+            <%orders.forEach(function(ele){ %>
+                <div class="card card-body bg-light ">
+                    <table>
+                        <% Object.keys(ele.cart.items).forEach(function(key,index) {%>
+                            <tr>
+                                <td style=" text-align: left;">
+                                    <strong>Item: </strong>
+                                    <%=ele.cart.items[key].item.tittle%>
+                                </td>
+                                <td style=" text-align: right;">
+                                    <strong>Quantity: </strong>
+                                    <%=ele.cart.items[key].qty%>Units </td>
+                                <td style=" text-align: right;">
+                                    <strong>Cost/Piece : </strong>$
+                                    <%=ele.cart.items[key].item.price%>
+                                </td>
+                            </tr>
+                            <% })%>
+                                <tr>
+                                    <td>
+                                        <hr>
+                                        <div style="color: rgb(248, 246, 246);"> <strong>Total Quantity :</strong></div>
+                                    </td>
+                                    <td style=" text-align: right;">
+                                        <hr>
+                                        <strong>Total Quantity :</strong>
+                                        <%=ele.cart.totalQty%> Units
+                                    </td>
+                                    <td style=" text-align: right;">
+                                        <hr>
+                                        <strong>Total Price :</strong> $
+                                        <%=ele.cart.totalPrice%>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                    </table>
+                </div>
+                <% })%>
+                    <div class="text-center"><a href="/orderremove"><button  class="btn btn-danger float-center" id="delete">Clear Orders </button></a></div>
+                    <%}%>
+                        <!-- Card -->
+    </div>
+    <%- include("../partials/footer.ejs") %>
